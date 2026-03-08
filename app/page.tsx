@@ -115,6 +115,19 @@ export default function Home() {
           </Link>
         </div>
 
+        <Link href="/ayuda" className="block">
+          <div className="bg-violet-800 hover:bg-violet-700 active:scale-95 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-lg shadow-purple-950 transition-all min-h-[100px] justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span className="text-white font-black text-xs text-center tracking-wide uppercase leading-tight">
+              Ver alertas de ayuda
+            </span>
+          </div>
+        </Link>
+
         {/* Footer */}
         <div className="mt-auto pb-4">
           <Link href="/zones">

@@ -108,13 +108,14 @@ const fetchHelpers = useCallback(async () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, fetchAll, fetchHelpers]);
 
-  const handleAyuda = async () => {
-    if (!user || yaAyuda) return;
+const handleAyuda = async () => {
+    if (!user || yaAyuda || enviando) return;
     setEnviando(true);
-    await supabase.from("helpers").insert([{
-      incident_id: id,
-      author_id: user.id,
-    }]);
+    const { error } = await supabase.from("helpers").upsert(
+      [{ incident_id: id, author_id: user.id }],
+      { onConflict: "incident_id,author_id", ignoreDuplicates: true }
+    );
+    if (!error) setYaAyuda(true);
     setEnviando(false);
   };
 
