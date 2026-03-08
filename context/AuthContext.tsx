@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
-const PUBLIC_ROUTES = ["/auth", "/registro", "/ayuda"];
+const PUBLIC_ROUTES = ["/auth", "/registro"];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
