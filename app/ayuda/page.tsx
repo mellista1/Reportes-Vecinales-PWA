@@ -37,16 +37,29 @@ export default function AyudaFeed() {
   const [requests, setRequests] = useState<HelpRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRequests = useCallback(async () => {
-    const { data } = await supabase
-      .from("help_requests")
-      .select("*, profiles(alias)")
-      .eq("activa", true)
-      .order("created_at", { ascending: false });
+const fetchRequests = useCallback(async () => {
+  const { data } = await supabase
+    .from("help_requests")
+    .select("*")
+    .eq("activa", true)
+    .order("created_at", { ascending: false });
 
-    if (data) setRequests(data as HelpRequest[]);
-    setLoading(false);
-  }, []);
+  if (!data) { setLoading(false); return; }
+
+  const withProfiles = await Promise.all(
+    data.map(async (req) => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("alias")
+        .eq("id", req.author_id)
+        .single();
+      return { ...req, profiles: profile ?? null };
+    })
+  );
+
+  setRequests(withProfiles as HelpRequest[]);
+  setLoading(false);
+}, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
