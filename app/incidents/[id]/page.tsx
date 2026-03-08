@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "../../../lib/supabaseClient";
 import { useAuth } from "../../../context/AuthContext";
@@ -37,7 +37,7 @@ interface Helper {
   id: string;
   author_id: string;
   created_at: string;
-  profiles: { alias: string } | null;
+  profiles: { alias: string }[] | { alias: string } | null;
 }
 
 export default function IncidentDetail() {
@@ -52,26 +52,22 @@ export default function IncidentDetail() {
   const [yaAyuda, setYaAyuda] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
-  useEffect(() => {
-    fetchAll();
+const fetchHelpers = useCallback(async () => {
+    const { data } = await supabase
+      .from("helpers")
+      .select("id, author_id, created_at, profiles(alias)")
+      .eq("incident_id", id)
+      .order("created_at", { ascending: true });
 
-    // Realtime: actualizar helpers automáticamente
-    const channel = supabase
-      .channel(`helpers-${id}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "helpers",
-        filter: `incident_id=eq.${id}`,
-      }, () => {
-        fetchHelpers();
-      })
-      .subscribe();
+    if (data) {
+      setHelpers(data as Helper[]);
+      if (user) {
+        setYaAyuda(data.some((h) => h.author_id === user.id));
+      }
+    }
+  }, [id, user]);
 
-    return () => { supabase.removeChannel(channel); };
-  }, [id]);
-
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
     const { data, error } = await supabase
       .from("incidents")
       .select("*")
@@ -91,22 +87,26 @@ export default function IncidentDetail() {
     }
     await fetchHelpers();
     setLoading(false);
-  };
+  }, [id, fetchHelpers]);
 
-  const fetchHelpers = async () => {
-    const { data } = await supabase
-      .from("helpers")
-      .select("id, author_id, created_at, profiles(alias)")
-      .eq("incident_id", id)
-      .order("created_at", { ascending: true });
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAll();
 
-    if (data) {
-      setHelpers(data as Helper[]);
-      if (user) {
-        setYaAyuda(data.some((h) => h.author_id === user.id));
-      }
-    }
-  };
+    const channel = supabase
+      .channel(`helpers-${id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "helpers",
+        filter: `incident_id=eq.${id}`,
+      }, () => {
+        fetchHelpers();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [id, fetchAll, fetchHelpers]);
 
   const handleAyuda = async () => {
     if (!user || yaAyuda) return;
@@ -216,21 +216,24 @@ export default function IncidentDetail() {
             <p className="text-slate-600 text-sm text-center py-2">Todavía nadie se ofreció a ayudar</p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {helpers.map((h) => (
+              {helpers.map((h) => {
+                const alias = Array.isArray(h.profiles) ? h.profiles[0]?.alias : h.profiles?.alias;
+                return (
                 <li key={h.id} className="flex items-center gap-3">
                   <div className="w-7 h-7 bg-green-900/30 rounded-full flex items-center justify-center border border-green-700/40 flex-shrink-0">
                     <span className="text-green-400 font-black text-xs">
-                      {h.profiles?.alias?.[0]?.toUpperCase() ?? "?"}
+                      {alias?.[0]?.toUpperCase() ?? "?"}
                     </span>
                   </div>
                   <span className="text-slate-300 text-sm font-bold">
-                    @{h.profiles?.alias ?? "vecino"}
+                    @{alias ?? "vecino"}
                   </span>
                   <span className="text-slate-600 text-xs ml-auto">
                     {new Date(h.created_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
