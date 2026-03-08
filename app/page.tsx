@@ -123,7 +123,7 @@ export default function Home() {
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
             <span className="text-white font-black text-xs text-center tracking-wide uppercase leading-tight">
-              Ver alertas de ayuda
+              Ver pedidos de ayuda
             </span>
           </div>
         </Link>

@@ -108,7 +108,7 @@ const fetchHelpers = useCallback(async () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, fetchAll, fetchHelpers]);
 
-const handleAyuda = async () => {
+    const handleAyuda = async () => {
     if (!user || yaAyuda || enviando) return;
     setEnviando(true);
     const { error } = await supabase.from("helpers").upsert(
@@ -117,7 +117,7 @@ const handleAyuda = async () => {
     );
     if (!error) setYaAyuda(true);
     setEnviando(false);
-  };
+    };
 
   // ——— LOADING ———
   if (loading) {

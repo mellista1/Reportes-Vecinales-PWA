@@ -49,6 +49,7 @@ export default function AyudaFeed() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRequests();
 
     const channel = supabase
